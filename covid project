@@ -1,0 +1,79 @@
+
+--shows the chances of dying from covid 
+select location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 as death_percentage
+from `covid-project-324408.covid_deaths.covid_deaths`
+where location = "Japan"
+order by 1,2
+
+--looking at total cases vs population
+--shows what population got covid
+select location, date, total_cases, population, (total_cases/population)*100 as population_percentage
+from `covid-project-324408.covid_deaths.covid_deaths`
+--where location = "Japan"
+order by 1,2
+
+--breakdown by continent
+select continent, max(cast(total_deaths as int)) as total_death_count
+from `covid-project-324408.covid_deaths.covid_deaths`
+where continent is not null
+group by continent
+order by total_death_count desc
+
+
+--breakdown by location
+select location, max(cast(total_deaths as int)) as total_death_count
+from `covid-project-324408.covid_deaths.covid_deaths`
+where  location is not null
+group by location
+order by total_death_count desc
+
+
+--looking at countries with high infection rate relative to populaiton size
+select location, population, (max(total_cases)) as highestinfectioncount, max((total_cases/population))*100 as population_percentage
+from `covid-project-324408.covid_deaths.covid_deaths`
+--where location = "Japan"
+group by location, population
+order by population_percentage desc 
+
+--countries with highest mortality rate relative to population
+select location, max(cast(total_deaths as int)) as total_death_count
+from `covid-project-324408.covid_deaths.covid_deaths`
+where continent is not null
+group by location
+order by total_death_count desc
+
+
+
+--Continents with highest death counts
+select continent, max(cast(total_deaths as int)) as total_death_count
+from `covid-project-324408.covid_deaths.covid_deaths`
+where continent is not null
+group by continent
+order by total_death_count desc
+
+
+--Global Count
+select date, sum(new_cases) as total_cases, sum(cast(new_deaths as int)) as total_deaths,sum(cast(new_deaths as int))/sum(new_cases)* 100 as death_percentage
+from `covid-project-324408.covid_deaths.covid_deaths`
+where continent is not null
+group by date 
+order by 1,2 
+
+--World grand total cases vs deaths
+select sum(new_cases) as total_cases, sum(cast(new_deaths as int)) as total_deaths,sum(cast(new_deaths as int))/sum(new_cases)* 100 as death_percentage
+from `covid-project-324408.covid_deaths.covid_deaths`
+where continent is not null
+order by 1,2 
+
+--total population vs vaccination
+select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
+sum(cast(vac.new_vaccinations as int)) OVER (partition by dea.location order by dea.location, dea.date) as rollingpeoplevaccinated
+,(rollingpeoplevaccinated/population)*100
+from `covid-project-324408.covid_deaths.covid_deaths` dea
+join `covid-project-324408.covid_vaccines.vaccines` vac
+    on dea.location = vac.location
+    and dea.date = vac.date
+    where dea.continent is not null
+    order by 2,3
+
+ 
