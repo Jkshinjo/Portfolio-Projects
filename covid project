@@ -76,4 +76,15 @@ join `covid-project-324408.covid_vaccines.vaccines` vac
     where dea.continent is not null
     order by 2,3
 
- 
+     -- USE CTE
+WITH PopvsVac  as (select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,sum(cast(vac.new_vaccinations as int)) 
+    OVER (partition by dea.location order by dea.location, dea.date)as rollingpeoplevaccinated
+from `covid-project-324408.covid_deaths.covid_deaths` dea
+join `covid-project-324408.covid_vaccines.vaccines` vac
+    on dea.location = vac.location
+    and dea.date = vac.date
+    where dea.continent is not null)
+    
+    select *, (rollingpeoplevaccinated/population)*100
+    from PopvsVac
+    
